@@ -2,6 +2,37 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
+import os
+import zipfile
+
+# ----------------------------
+# Google Drive Direct Download
+# ----------------------------
+ZIP_URL = "https://drive.google.com/uc?export=download&id=1Pkme2TBbZRUagPtJYPImXXqbwIcg3bYY"
+ZIP_FILE = "movie_files.zip"
+
+def download_zip():
+    st.info("Downloading required data... please wait (only once).")
+    r = requests.get(ZIP_URL, stream=True)
+
+    with open(ZIP_FILE, "wb") as f:
+        for chunk in r.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+    st.success("Download complete! Extracting files...")
+
+    with zipfile.ZipFile(ZIP_FILE, 'r') as zip_ref:
+        zip_ref.extractall(".")
+
+    st.success("Files extracted successfully!")
+
+
+# ----------------------------
+# Ensure PKL Files Are Ready
+# ----------------------------
+if not os.path.exists("movie_list.pkl") or not os.path.exists("similarity.pkl"):
+    download_zip()
+
 
 # ----------------------------
 # Fetch Poster from TMDb
@@ -80,4 +111,3 @@ if st.button("Recommend"):
                 with col:
                     st.image(posters[idx])
                     st.markdown(f"**{names[idx]}**")
-
